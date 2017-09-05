@@ -9,8 +9,7 @@ import MySQLdb
 
 import requests
 from lxml import html
-reload(sys)
-sys.setdefaultencoding('UTF-8')
+
 
 
 if __name__ == "__main__":

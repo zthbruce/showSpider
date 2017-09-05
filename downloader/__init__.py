@@ -4,6 +4,7 @@
 # 引入模块
 import sys
 import os
+import time
 import re
 import traceback
 import logging
@@ -14,6 +15,9 @@ from lxml import html
 from DBUtils.PooledDB import PooledDB
 import conf
 
+reload(sys)
+sys.setdefaultencoding('UTF-8')
+
 # 日志先行
 # 脚本当前目录
 current_path = sys.path[0]
@@ -23,7 +27,8 @@ log_dir = os.path.join(current_path, 'log')
 
 # 数据库连接池
 pool = PooledDB(MySQLdb, mincached=conf.pool_min_cached, maxcached=conf.pool_max_cached, maxconnections=conf.pool_size,
-                blocking=True, host=conf.mysql_host, user=conf.mysql_user, passwd=conf.mysql_pwd, db=conf.mysql_db, port=conf.mysql_port)
+                blocking=True, host=conf.mysql_host, user=conf.mysql_user, passwd=conf.mysql_pwd, db=conf.mysql_db,
+                port=conf.mysql_port, charset='utf8')
 
 
 # 更新数据库
@@ -43,6 +48,19 @@ def update(logger, sql, param):
             cur.execute(sql)
         con.commit()
 
+        cur.close()
+        con.close()
+    except Exception, e:
+        logger.exception('sql error : %s', sql)
+
+
+# 批量更新数据库
+def batch_update(logger, sql, list_all):
+    try:
+        con = pool.connection()
+        cur = con.cursor()
+        cur.executemany(sql, list_all)
+        con.commit()
         cur.close()
         con.close()
     except Exception, e:
